@@ -1,9 +1,12 @@
 package com.github.francoisberger.model;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -13,6 +16,27 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  */
 class PotentialPrimeTest {
+	@Test
+	void emptyNumbers_shouldBeTreatedAs0() {
+		// Arrange
+		PotentialPrime potentialPrime;
+		// Act
+		potentialPrime = new PotentialPrime("");
+		// Assert
+		assertTrue(potentialPrime.isZero());
+	}
+
+	@ParameterizedTest(name = "{0} is negative and should be considered negative = {1}")
+	@CsvSource({ "-121242, true", "-133125, true", "-5, true", "5, false", "102942, false" })
+	void knownPrimes_shouldBePrime(long source, boolean check) {
+		// Arrange
+		PotentialPrime potentialPrime;
+		// Act
+		potentialPrime = new PotentialPrime(source);
+		// Assert
+		assertThat(potentialPrime.isNegative()).isEqualTo(check);
+	}
+
 	@ParameterizedTest(name = "{0} is prime and should be checked as so...")
 	@ValueSource(longs = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89,
 			97 })
@@ -117,7 +141,7 @@ class PotentialPrimeTest {
 	}
 
 	@ParameterizedTest(name = "{0} is divisible by 7 and should be checked as so...")
-	@ValueSource(longs = { 0, 7, 14, 21, 28, 35, 42, 49, 56, 64, 70, 77, 7 * 256, 7 * 512, 7 * 1024, 7 * 2048,
+	@ValueSource(longs = { 0, 7, 14, 21, 28, 35, 42, 49, 56, 63, 70, 77, 7 * 256, 7 * 512, 7 * 1024, 7 * 2048,
 			7 * 4096 })
 	void divisibleBy7Numbers_shouldBeDivisibleBy7(long source) {
 		// Arrange
