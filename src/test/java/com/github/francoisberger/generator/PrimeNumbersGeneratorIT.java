@@ -6,6 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import com.github.francoisberger.controller.Status;
+
 /**
  * Integration tests for PrimeNumbersGenerator.
  * 
@@ -16,11 +18,20 @@ class PrimeNumbersGeneratorIT {
 
 	private PrimeNumbersGenerator classUnderTest;
 
+	/**
+	 * Initializes the PrimeNumbersGenerator to test.
+	 */
 	@BeforeEach
 	void init() {
 		classUnderTest = new PrimeNumbersGenerator();
 	}
 
+	/**
+	 * Tests if we're able to start a generator then interrupt it.
+	 * 
+	 * @throws InterruptedException Exception is thrown if Thread.sleep is
+	 *                              interrupted.
+	 */
 	@Test
 	@Timeout(1)
 	void primeNumbersGenerator_shouldStartAndStop() throws InterruptedException {
@@ -28,11 +39,18 @@ class PrimeNumbersGeneratorIT {
 		classUnderTest.start();
 		// WHEN
 		Thread.sleep(500);
-		classUnderTest.stop();
+		classUnderTest.interrupt();
 		// THEN
 		assertThat(classUnderTest.getStatus() == Status.STOPPED);
 	}
 
+	/**
+	 * Tests if we're able to start a generator from a given point then interrupt
+	 * it.
+	 * 
+	 * @throws InterruptedException Exception is thrown if Thread.sleep is
+	 *                              interrupted.
+	 */
 	@Test
 	@Timeout(1)
 	void primeNumbersGenerator_shouldStartFromGivenNumber() throws InterruptedException {
@@ -40,7 +58,7 @@ class PrimeNumbersGeneratorIT {
 		classUnderTest.start("200");
 		// WHEN
 		Thread.sleep(500);
-		classUnderTest.stop();
+		classUnderTest.interrupt();
 		// THEN
 		assertThat(classUnderTest.getStatus() == Status.STOPPED);
 	}

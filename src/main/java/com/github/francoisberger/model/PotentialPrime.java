@@ -14,7 +14,10 @@ import edu.emory.mathcs.backport.java.util.Arrays;
  */
 public class PotentialPrime {
 	private static final String[] KNOWNPRIMES = { "2", "3", "5", "7", "11", "13", "17", "19", "23", "29" };
+	@SuppressWarnings("unchecked")
+	// We maintain a set of known primes for faster retrieval
 	private Set<String> knownPrimes = new HashSet<String>(Arrays.asList(KNOWNPRIMES));
+	// This PotentialPrime's value
 	private String value;
 
 	/**
@@ -32,20 +35,26 @@ public class PotentialPrime {
 	 * @param number Number used to initialize this PotentialPrime object
 	 */
 	public PotentialPrime(String number) {
-		if (number.isEmpty()) {
-			value = "0";
-		} else {
-			value = new BigInteger(number).toString();
-		}
+		value = (number.isEmpty() ? "0" : number);
 	}
 
 	/**
-	 * Checks if this number is zero.
+	 * Returns the value of this number.
 	 * 
-	 * @return
+	 * @return String value of this number.
 	 */
-	public boolean isZero() {
-		return value.equals("0");
+	public String getValue() {
+		return value;
+	}
+
+	/**
+	 * Returns the sum of this number and the parameter.
+	 * 
+	 * @param integer The integer to be added to this.
+	 * @return The results of the addition of this number with the parameter.
+	 */
+	public PotentialPrime add(BigInteger integer) {
+		return new PotentialPrime(integer.add(new BigInteger(value)).toString());
 	}
 
 	/**
@@ -59,7 +68,7 @@ public class PotentialPrime {
 			return true;
 		}
 		// Perform easy checks first
-		if (isZero() || isNegative()) {
+		if (value.equals("0") || value.equals("1") || isNegative()) {
 			return false;
 		}
 		if (isDivisibleBy2() || isDivisibleBy5() || isDivisibleBy10()) {
@@ -76,17 +85,18 @@ public class PotentialPrime {
 		}
 
 		// Main loop -> Check if number is divisible by anything but him
-		BigInteger valueAsBigInteger = new BigInteger(value);
-		BigInteger halfValue = valueAsBigInteger.divide(BigInteger.TWO);
+		BigInteger valueBI = new BigInteger(value);
+		BigInteger halfValue = valueBI.divide(BigInteger.TWO);
 		// Loop from 11 to value / 2 by a two step (i.e. 11 - 13 - 15 - etc.)
 		// We do not need to check 12 - 14 - etc. as even numbers are divided by 2
 		// and we already performed this check.
 		for (BigInteger i = new BigInteger("11"); i.compareTo(halfValue) == -1; i = i.add(BigInteger.TWO)) {
-			if (valueAsBigInteger.mod(i).equals(BigInteger.ZERO)) {
+			if (valueBI.mod(i).equals(BigInteger.ZERO)) {
 				return false;
 			}
 		}
 
+		knownPrimes.add(value);
 		return true;
 	}
 
