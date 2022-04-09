@@ -1,6 +1,16 @@
 package com.github.francoisberger.controller;
 
-import com.github.francoisberger.model.PrimeNumberFactory;
+import java.nio.file.FileSystems;
+import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.github.francoisberger.model.IOStrategy;
+import com.github.francoisberger.model.IOStrategyFactory;
+import com.github.francoisberger.model.Prime;
+import com.github.francoisberger.model.PrimeFactory;
 import com.github.francoisberger.view.View;
 
 /**
@@ -13,7 +23,14 @@ import com.github.francoisberger.view.View;
 public class Controller {
 	private Status status;
 	private View view;
-	private PrimeNumberFactory factory;
+
+	// Members from prime generation
+	private PrimeFactory factory;
+	private Set<Prime> knownPrimes;
+
+	// Members for data source load and save
+	private IOStrategy inAndOut;
+	private boolean batchSave = false;
 
 	/**
 	 * Creates a new Controller with designed view.
@@ -23,8 +40,10 @@ public class Controller {
 	public Controller(View view) {
 		this.view = view;
 		this.view.setController(this);
-		this.factory = new PrimeNumberFactory();
-		status = Status.STARTING;
+		this.factory = new PrimeFactory();
+		this.batchSave = false;
+		this.knownPrimes = new HashSet<Prime>();
+		this.status = Status.STARTING;
 	}
 
 	/**
@@ -33,7 +52,50 @@ public class Controller {
 	 * @param startNumber The number to start from.
 	 */
 	public void setStartNumber(String startNumber) {
-		this.factory = new PrimeNumberFactory(startNumber);
+		this.factory = new PrimeFactory(startNumber);
+	}
+
+	/**
+	 * Sets the destination where IO operations to save / load will be performed.
+	 * 
+	 * @param datasource Destination of IO operations.
+	 */
+	public void setDataSource(String datasource) {
+		if (datasource.isEmpty()) {
+			throw new IllegalArgumentException("Destination can not be empty!");
+		}
+		inAndOut = IOStrategyFactory.getStrategy(datasource);
+		if (inAndOut.exists()) {
+			view.promptForOverwrite(false);
+		}
+
+		knownPrimes = inAndOut.load();
+		view.print(knownPrimes.size() + " primes found in data source!");
+		// Retrieve largest known prime
+		if (knownPrimes.size() > 0) {
+			String largestPrime = knownPrimes.stream().sorted().sorted(Comparator.reverseOrder())
+					.map(number -> number.toString()).collect(Collectors.toList()).get(0);
+			view.print("Starting from " + largestPrime + "!");
+			factory = new PrimeFactory(largestPrime);
+		}
+	}
+
+	/**
+	 * Sets the batch save flag for data source operations.
+	 * 
+	 * @param batchSave If true, all generated primes are saved as a batch at the
+	 *                  very end of process.
+	 */
+	public void setBatchSave(boolean batchSave) {
+		this.batchSave = batchSave;
+	}
+
+	/**
+	 * Ensures the data source used for IO operations is cleared.
+	 * 
+	 */
+	public void overwriteDestination() {
+		inAndOut.clear();
 	}
 
 	/**
@@ -52,13 +114,18 @@ public class Controller {
 		if (status != Status.STARTING) {
 			throw new IllegalStateException("Can not start a non starting controller!");
 		}
+		// We might want to consider System.getProperty("java.io.tmpdir")
+		String defaultDataSource = Paths.get("").toAbsolutePath().toString() + FileSystems.getDefault().getSeparator()
+				+ "primes.txt";
+		view.promptForDataSource(defaultDataSource);
+		view.promptForBatchSave(false);
 		status = Status.STARTED;
 		run();
 	}
 
 	/**
-	 * Runs the controller i.e. perform prime number generation, display and user
-	 * interaction if required.
+	 * Runs the controller i.e. perform prime number generation, display, save and
+	 * user interaction if required.
 	 */
 	private void run() {
 		if (status != Status.STARTED) {
@@ -66,11 +133,23 @@ public class Controller {
 		}
 		status = Status.RUNNING;
 
+		// Prime generation
+		view.print("Generating primes...");
 		while (status == Status.RUNNING) {
-			String prime = factory.nextPrime();
-			view.print(prime);
+			Prime prime = factory.nextPrime();
+			knownPrimes.add(prime);
+			if (!batchSave) {
+				inAndOut.save(prime);
+			}
 		}
 
+		// Saving
+		view.print(knownPrimes.size() + " primes found!");
+		if (batchSave) {
+			view.print("Saving primes...");
+			inAndOut.save(knownPrimes);
+			view.print("Primes saved!");
+		}
 		status = Status.STOPPED;
 	}
 
@@ -78,9 +157,6 @@ public class Controller {
 	 * Stops this controller by setting its internal status to STOPPING
 	 */
 	public void stop() {
-		if (status != Status.RUNNING) {
-			throw new IllegalStateException("Can not stop a non running controller!");
-		}
 		status = Status.STOPPING;
 	}
 

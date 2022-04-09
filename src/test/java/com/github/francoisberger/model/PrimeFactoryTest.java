@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.CsvSource;
  * @author Francois
  *
  */
-class PrimeNumberFactoryTest {
+class PrimeFactoryTest {
 
 	/**
 	 * Ensures first found prime is 2.
@@ -20,9 +20,9 @@ class PrimeNumberFactoryTest {
 	@Test
 	void firstPrime_shouldBe2() {
 		// Arrange
-		PrimeNumberFactory factoryUnderTest = new PrimeNumberFactory();
+		PrimeFactory factoryUnderTest = new PrimeFactory();
 		// Act
-		String prime = factoryUnderTest.nextPrime();
+		String prime = factoryUnderTest.nextPrime().getValue();
 		// Assert
 		assertThat(prime).isEqualTo("2");
 	}
@@ -39,9 +39,9 @@ class PrimeNumberFactoryTest {
 			"89,97" })
 	void nextPrime_shouldBeExpectedPrime(String start, String expectedPrime) {
 		// Arrange
-		PrimeNumberFactory factoryUnderTest = new PrimeNumberFactory();
+		PrimeFactory factoryUnderTest = new PrimeFactory();
 		// Act
-		String nextPrime = factoryUnderTest.nextPrime(start);
+		String nextPrime = factoryUnderTest.nextPrime(start).getValue();
 		// Assert
 		assertThat(nextPrime).isEqualTo(expectedPrime);
 	}

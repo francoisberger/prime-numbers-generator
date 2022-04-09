@@ -8,23 +8,33 @@ import java.math.BigInteger;
  * @author Francois
  *
  */
-public class PrimeNumberFactory {
-	private String lastPrime = "";
+public class PrimeFactory {
+	private Prime lastPrime = new Prime(0);
 
 	/**
 	 * Creates a factory that will start at 0 its prime number generation.
 	 */
-	public PrimeNumberFactory() {
+	public PrimeFactory() {
 
 	}
 
 	/**
 	 * Creates a factory that will start prime number generation at given parameter.
 	 * 
-	 * @param startNumber The number to start from.
+	 * @param startNumber The number to start from. It may not be a prime as user
+	 *                    will fetch the next prime value using nextPrime.
 	 */
-	public PrimeNumberFactory(String startNumber) {
-		lastPrime = new PotentialPrime(startNumber).toString();
+	public PrimeFactory(String startNumber) {
+		lastPrime = new Prime(startNumber);
+	}
+
+	/**
+	 * Creates a factory that will start prime number generation at given parameter.
+	 * 
+	 * @param startPrime The number to start from.
+	 */
+	public PrimeFactory(Prime startPrime) {
+		lastPrime = startPrime;
 	}
 
 	/**
@@ -32,8 +42,8 @@ public class PrimeNumberFactory {
 	 * 
 	 * @return Next prime number.
 	 */
-	public String nextPrime() {
-		return nextPrime(lastPrime);
+	public Prime nextPrime() {
+		return nextPrime(lastPrime.getValue());
 	}
 
 	/**
@@ -42,12 +52,12 @@ public class PrimeNumberFactory {
 	 * @param startNumber The number to start from.
 	 * @return Next prime number.
 	 */
-	public String nextPrime(String startNumber) {
-		String newPrime = "";
-		if (startNumber.isEmpty() || startNumber.equals("0")) {
-			newPrime = "2";
+	public Prime nextPrime(String startNumber) {
+		Prime newPrime;
+		if (startNumber.equals("0")) {
+			newPrime = new Prime("2");
 		} else if (startNumber.equals("2")) {
-			newPrime = "3";
+			newPrime = new Prime("3");
 		} else {
 			PotentialPrime potentialPrime = new PotentialPrime(startNumber);
 			// An even number will not be a prime... we'd better increment by one
@@ -60,12 +70,11 @@ public class PrimeNumberFactory {
 			do {
 				potentialPrime = potentialPrime.add(BigInteger.TWO);
 			} while (!potentialPrime.isPrime());
-			newPrime = potentialPrime.getValue();
+			newPrime = new Prime(potentialPrime.getValue());
 		}
 		// Store new value for later use
 		lastPrime = newPrime;
-		return newPrime;
-
+		return new Prime(newPrime);
 	}
 
 }

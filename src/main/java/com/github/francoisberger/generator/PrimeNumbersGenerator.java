@@ -1,6 +1,5 @@
 package com.github.francoisberger.generator;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.github.francoisberger.controller.Controller;
@@ -18,7 +17,7 @@ import com.github.francoisberger.view.View;
 public class PrimeNumbersGenerator extends Thread {
 	private Controller controller;
 	private View view;
-	private Logger logger = Logger.getLogger(getName());
+	private Logger logger = Logger.getAnonymousLogger();
 
 	/**
 	 * Creates a new PrimeNumbersGenerator with basic controller and console view.
@@ -45,9 +44,21 @@ public class PrimeNumbersGenerator extends Thread {
 	 */
 	@Override
 	public void interrupt() {
-		logger.log(Level.INFO, "Prime number generation interrupted! Stopping controller...");
-		controller.stop();
-		logger.log(Level.INFO, "Controller stopped. Exiting...");
+		if (controller.getStatus() == Status.RUNNING) {
+			System.out.println("Stopping controller...");
+			controller.stop();
+			// Wait for controller to stop.
+			while (controller.getStatus() != Status.STOPPED) {
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+				}
+			}
+			System.out.println("Controller stopped. Exiting...");
+		} else {
+			System.out.println("No need to stop a non running controller!");
+		}
+
 	}
 
 	/**
@@ -76,12 +87,16 @@ public class PrimeNumbersGenerator extends Thread {
 	 * @param args Arguments from the command line (currently ignored).
 	 */
 	public static void main(String[] args) {
+		// java.lang.Runtime.addShutdownHook
 		PrimeNumbersGenerator generator = new PrimeNumbersGenerator();
+		Runtime.getRuntime().addShutdownHook(new ShutdownHook(generator));
 		generator.start();
-		/*
-		 * try { Thread.sleep(2000); } catch (InterruptedException e) {
-		 * e.printStackTrace(); } generator.interrupt();
-		 */
+		try {
+			generator.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }

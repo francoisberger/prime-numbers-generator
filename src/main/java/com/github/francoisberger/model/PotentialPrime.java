@@ -12,13 +12,22 @@ import edu.emory.mathcs.backport.java.util.Arrays;
  * @author Francois
  *
  */
-public class PotentialPrime {
+public class PotentialPrime implements Comparable<PotentialPrime> {
 	private static final String[] KNOWNPRIMES = { "2", "3", "5", "7", "11", "13", "17", "19", "23", "29" };
 	@SuppressWarnings("unchecked")
 	// We maintain a set of known primes for faster retrieval
-	private Set<String> knownPrimes = new HashSet<String>(Arrays.asList(KNOWNPRIMES));
+	private static Set<String> knownPrimes = new HashSet<String>(Arrays.asList(KNOWNPRIMES));
+
 	// This PotentialPrime's value
 	private String value;
+
+	/**
+	 * Creates a potential prime initialized to 0.
+	 * 
+	 */
+	public PotentialPrime() {
+		value = "0";
+	}
 
 	/**
 	 * Creates a potential prime from given number.
@@ -39,12 +48,40 @@ public class PotentialPrime {
 	}
 
 	/**
+	 * Creates a copy of a potential prime.
+	 * 
+	 * @param number PotentialPrime to be copied.
+	 */
+	public PotentialPrime(PotentialPrime number) {
+		this.value = number.value;
+	}
+
+	/**
 	 * Returns the value of this number.
 	 * 
 	 * @return String value of this number.
 	 */
 	public String getValue() {
 		return value;
+	}
+
+	/**
+	 * Returns known primes cache for any PotentialPrime.
+	 * 
+	 * @return Set of known primes.
+	 */
+	public static Set<String> getKnownPrimes() {
+		return knownPrimes;
+	}
+
+	/**
+	 * Copy known primes given as parameters to cache for any PotentialPrime.
+	 * 
+	 * @param primes Set of known primes.
+	 * 
+	 */
+	public static void cacheKnownPrimes(Set<String> primes) {
+		knownPrimes.addAll(primes);
 	}
 
 	/**
@@ -312,10 +349,90 @@ public class PotentialPrime {
 	/**
 	 * Checks if this number is negative.
 	 * 
-	 * @return true if divisible, false otherwise
+	 * @return true if negative, false otherwise
 	 */
 	public boolean isNegative() {
 		return value.startsWith("-");
+	}
+
+	/**
+	 * Checks if this number is positive.
+	 * 
+	 * @return true if positive, false otherwise
+	 */
+	public boolean isPositive() {
+		return !isNegative();
+	}
+
+	/**
+	 * Checks if two potential primes are equals.
+	 * 
+	 * @param other The other number to be compared.
+	 * @return true if equals, false otherwise
+	 */
+	public boolean equals(PotentialPrime other) {
+		return value.equals(other.value);
+	}
+
+	/**
+	 * Checks if two potential primes are equals using a String representation of a
+	 * number.
+	 * 
+	 * @param other The other number to be compared.
+	 * @return true if equals, false otherwise
+	 */
+	public boolean equals(String other) {
+		return value.equals(other);
+	}
+
+	/**
+	 * Returns the string representation of this PotentialPrime.
+	 * 
+	 * @return value of the PotentialPrime as a String.
+	 */
+	@Override
+	public String toString() {
+		return value;
+	}
+
+	/**
+	 * Compares two prime numbers.
+	 * 
+	 * @param other The other number to be compared.
+	 * @return Returns a negative integer, zero, or a positive integer if this
+	 *         number is less than, equal to, or greater than the second.
+	 */
+	@Override
+	public int compareTo(PotentialPrime other) {
+		// Sign comparison
+		if (isNegative() && !other.isNegative()) {
+			return -1;
+		}
+		if (!isNegative() && other.isNegative()) {
+			return 1;
+		}
+
+		// Same sign... if both negatives the "greater" is the "smaller" we'll have to
+		// invert results
+		if (value.length() < other.value.length()) {
+			return isPositive() ? -1 : 1;
+		} else if (value.length() > other.value.length()) {
+			return isPositive() ? 1 : -1;
+		} else if (value.equals(other.value)) {
+			return 0;
+		} else {
+			// Loop through all digits and break when first difference is found
+			for (int i = 0; i < value.length(); i++) {
+				char thisDigit = value.charAt(i);
+				char otherDigit = other.value.charAt(i);
+				if (thisDigit < otherDigit) {
+					return isPositive() ? -1 : 1;
+				} else if (thisDigit > otherDigit) {
+					return isPositive() ? 1 : -1;
+				}
+			}
+			return 0;
+		}
 	}
 
 }

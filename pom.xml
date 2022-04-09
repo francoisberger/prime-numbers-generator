@@ -56,7 +56,12 @@
 			<artifactId>maven-jar-plugin</artifactId>
 			<version>3.2.2</version>
 		</dependency>
-
+		<!-- https://mvnrepository.com/artifact/org.codehaus.mojo/exec-maven-plugin -->
+		<dependency>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>exec-maven-plugin</artifactId>
+			<version>3.0.0</version>
+		</dependency>
 
 	</dependencies>
 
@@ -102,6 +107,15 @@
 							<mainClass>com.github.francoisberger.generator.PrimeNumbersGenerator</mainClass>
 						</manifest>
 					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<configuration>
+					<mainClass>com.github.francoisberger.generator.PrimeNumbersGenerator</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>
